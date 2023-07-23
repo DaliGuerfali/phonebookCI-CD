@@ -8,7 +8,7 @@
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "serve": "webpack serve --mode development",
     "test": "cypress run",
-    "test-server": "cross-env NODE_ENV=test node index.js",
+    "test-server": "cross-env NODE_ENV=test nodemon index.js",
     "build": "webpack --mode production",
     "lint": "eslint .",
     "fixLint": "eslint --fix .",
