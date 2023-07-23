@@ -1,0 +1,63 @@
+name: deployment_pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize]
+
+jobs:
+  deployment_pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8
+        with:
+          node-version: "18"
+      - name: installing dependencies
+        run: npm install
+      - name: Linting Check
+        run: npm run lint
+      - name: Build
+        run: npm run build
+      - name: e2e tests
+        uses: cypress-io/github-action@d69252d52b9a31bad4f418f05ba2bc83687a02eb
+        env:
+            TEST_MONGODB_URI: ${{ secrets.TEST_MONGODB_URI }}
+        with:
+          command: npm run test
+          start: npm run test-server
+          wait-on: http://localhost:3001
+      - if: ${{ github.event_name == 'push' }}
+        name: deploy to render
+        run: curl https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}
+      - if: github.event_name == 'push' && success()
+        name: Deploy Success
+        uses: rjstone/discord-webhook-notify@89b0bf43c2c8514f70d0dcba4a706b904e8a3112
+        with:
+          severity: info
+          details: to https://phonebookci-cd.onrender.com
+          text: A new version of Phonebook App is deployed!
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Build Failure
+        uses: rjstone/discord-webhook-notify@89b0bf43c2c8514f70d0dcba4a706b904e8a3112
+        if: failure()
+        with:
+          severity: error
+          text: Build Failure
+          details: commit https://github.com/${{ github.repository }}/commit/${{ github.sha }} is broken
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+  tag_release:
+    needs: [deployment_pipeline]
+    if: github.event_name == 'push' && !contains(join(github.event.commits.*.message), '#skip')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@a2c70ae13a881faf2b4953baaa9e49731997ab36
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: patch
+          INITIAL_VERSION: "1.2.0"
