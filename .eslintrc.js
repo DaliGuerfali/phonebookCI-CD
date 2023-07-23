@@ -2,10 +2,11 @@ module.exports = {
 	'env': {
 		'node': true,
 		'browser': true,
-		'es2021': true
+		'es2021': true,
+		'cypress/globals': true
 	},
 	'extends': ['eslint:recommended', 'plugin:react/recommended'],
-	'plugins': ['import', 'react'],
+	'plugins': ['import', 'react', 'cypress'],
 	'parserOptions': {
 		'ecmaVersion': 'latest'
 	},
@@ -35,7 +36,7 @@ module.exports = {
         'error', { 'before': true, 'after': true }
     	],
 		'no-console': 0,
-		'react/prop-types': [0]
+		'react/prop-types': 0
 	},
 	'overrides': [
 		{

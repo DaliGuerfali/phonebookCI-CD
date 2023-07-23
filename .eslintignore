@@ -2,3 +2,4 @@ dist
 .eslintrc.js
 webpack.config.js
 .babelrc
+cypress.config.js
