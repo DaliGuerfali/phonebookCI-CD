@@ -17,7 +17,7 @@ api.get('/health', (_req, res) => {
 });
 
 api.get('/version', (_req, res) => {
-  res.send('1.2');
+  res.send('1.2.2');
 });
 
 module.exports = api;
